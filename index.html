@@ -1,97 +1,85 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Numero Magico</title>
-
-<link rel="stylesheet" href="css/style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numero Magico</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
+    <div id="pantalla">
+        <img class="img-televisor" id="televisor-img" src="img/dispositivos/televisor.png">
+        <img class="img-panel-relativa oculto" id="fondo-panel-img" src="img/dispositivos/panel.png">
 
-<div id="pantalla">
-    <img class="img-televisor" id="televisor-img" src="img/dispositivos/televisor.png">
-    <img class="img-panel-relativa oculto" id="fondo-panel-img" src="img/dispositivos/panel.png">
+        <img class="img-relativa oculto" id="fondo-img" src="img/lanzamiento/fondo.png">
+        <img class="img-relativa oculto" id="tirachinas-img" src="img/lanzamiento/tirachinas.png">
+        <img class="img-relativa oculto" id="base-banda-tirachinas-img" src="img/lanzamiento/base-banda-tirachinas.png">
 
-    <img class="img-relativa oculto" id="fondo-img" src="img/lanzamiento/fondo.png">
-    <img class="img-relativa oculto" id="tirachinas-img" src="img/lanzamiento/tirachinas.png">
-    <img class="img-relativa oculto" id="base-banda-tirachinas-img" src="img/lanzamiento/base-banda-tirachinas.png">
-    
-    <img class="img-relativa banda oculto" id="banda-izq-1" src="img/lanzamiento/banda-izq-1.png">
-    <img class="img-relativa banda oculto" id="banda-izq-2" src="img/lanzamiento/banda-izq-2.png">
-    <img class="img-relativa banda oculto" id="banda-izq-3" src="img/lanzamiento/banda-izq-3.png">
-    <img class="img-relativa banda oculto" id="banda-izq-4" src="img/lanzamiento/banda-izq-4.png">
+        <img class="img-relativa banda oculto" id="banda-izq-1" src="img/lanzamiento/banda-izq-1.png">
+        <img class="img-relativa banda oculto" id="banda-izq-2" src="img/lanzamiento/banda-izq-2.png">
+        <img class="img-relativa banda oculto" id="banda-izq-3" src="img/lanzamiento/banda-izq-3.png">
+        <img class="img-relativa banda oculto" id="banda-izq-4" src="img/lanzamiento/banda-izq-4.png">
 
-    <img class="img-relativa banda oculto" id="banda-der-1" src="img/lanzamiento/banda-der-1.png">
-    <img class="img-relativa banda oculto" id="banda-der-2" src="img/lanzamiento/banda-der-2.png">
-    <img class="img-relativa banda oculto" id="banda-der-3" src="img/lanzamiento/banda-der-3.png">
-    <img class="img-relativa banda oculto" id="banda-der-4" src="img/lanzamiento/banda-der-4.png">
+        <img class="img-relativa banda oculto" id="banda-der-1" src="img/lanzamiento/banda-der-1.png">
+        <img class="img-relativa banda oculto" id="banda-der-2" src="img/lanzamiento/banda-der-2.png">
+        <img class="img-relativa banda oculto" id="banda-der-3" src="img/lanzamiento/banda-der-3.png">
+        <img class="img-relativa banda oculto" id="banda-der-4" src="img/lanzamiento/banda-der-4.png">
 
-    <img class="img-relativa oculto" id="satelite-img" src="img/lanzamiento/satelite-4.png">
-    <img class="img-relativa oculto" id="base-banda-img" src="img/lanzamiento/base-banda-4.png">
-       
-    <img class="img-relativa oculto" id="transicion-img" src="img/transicion/7.png">
-   
-    <img class="img-relativa oculto" id="espacio-img" src="img/espacio/espacio-1.png">
-    <img class="img-relativa oculto" id="tierra-img" src="img/espacio/tierra1.png">
-    <img class="img-posicion-satelite oculto" id="zoom-satelite-img" src="img/espacio/zoom-satelite.png">   
-    
-    <img class="img-relativa" id="pantalla-img" src="img/pantallas/main-menu.png">
-    
-</div>
+        <img class="img-relativa oculto" id="satelite-img" src="img/lanzamiento/satelite-4.png">
+        <img class="img-relativa oculto" id="base-banda-img" src="img/lanzamiento/base-banda-4.png">
 
+        <img class="img-relativa oculto" id="transicion-img" src="img/transicion/7.png">
 
-<div id="panel-marco">
-    <img id="panel-marco-img" src="img/dispositivos/panel.png">
-    <div class="panel" id="panel">
-    <div id="titulo-menu">
-        <h2>¡Lanza el satelite!</h2>
-    </div>
-    <div id="descripcion-juego">
-        <p>Lanza con una fuerza de entre 1 y <span id="rango-maximo">100</span></p>
+        <img class="img-relativa oculto" id="espacio-img" src="img/espacio/espacio-1.png">
+        <img class="img-relativa oculto" id="tierra-img" src="img/espacio/tierra1.png">
+        <img class="img-posicion-satelite oculto" id="zoom-satelite-img" src="img/espacio/zoom-satelite.png">
+
+        <img class="img-relativa" id="pantalla-img" src="img/pantallas/main-menu.png">
     </div>
 
-    <!-- Selector de dificultad -->
-    <div id="dificultad">
-        <label for="select-dificultad">Dificultad:</label>
-        <select id="select-dificultad">
-            <option value="FACIL" selected>Fácil (1-100)</option>
-            <option value="MEDIA">Media (1-333)</option>
-            <option value="DIFICIL">Difícil (1-767)</option>
-        </select>
+    <div id="panel-marco">
+        <img id="panel-marco-img" src="img/dispositivos/panel.png">
+        <div class="panel" id="panel">
+            <div id="titulo-menu">
+                <h2>¡Lanza el satelite!</h2>
+            </div>
+            <div id="descripcion-juego">
+                <p>Lanza con una fuerza de entre 1 y <span id="rango-maximo">100</span></p>
+            </div>
+
+            <div id="dificultad">
+                <label for="select-dificultad">Dificultad:</label>
+                <select id="select-dificultad">
+                    <option value="FACIL" selected>Fácil (1-100)</option>
+                    <option value="MEDIA">Media (1-333)</option>
+                    <option value="DIFICIL">Difícil (1-767)</option>
+                </select>
+            </div>
+
+            <div id="acciones-menu">
+                <button id="btn-jugar" type="button">Jugar</button>
+            </div>
+
+            <div id="form-ingreso">
+                <form onsubmit="validarNumero(); return false;">
+                    <input type="number" id="numUsuario" class="input-juego" placeholder="1-100" min="1" max="100" value="1" required>
+                    <button type="submit">¡Lanzar!</button>
+                </form>
+            </div>
+
+            <div id="zona-mensajes">
+                <p id="mensaje"></p>
+            </div>
+
+            <div id="historial"></div>
+
+            <div id="acciones-final" class="oculto">
+                <button id="btn-reiniciar" type="button">Reiniciar</button>
+                <button id="btn-menu" type="button">Menu principal</button>
+            </div>
+        </div>
     </div>
 
-    <div id="acciones-menu">
-        <button id="btn-jugar" type="button">Jugar</button>
-    </div>
-
-    <div id="form-ingreso">
-        <form onsubmit="validarNumero(); return false;">
-            <input type="number" id="numUsuario" class="input-juego" placeholder="1-100" min="1" max="100" value="1" required>
-            <button type="submit">¡Lanzar!</button>
-        </form>
-    </div>
-
-    <div id="zona-mensajes">
-        <p id="mensaje"></p>
-    </div>
-
-    <!-- Historial de intentos -->
-    <div id="historial"></div>
-
-    <div id="acciones-final" class="oculto">
-        <button id="btn-reiniciar" type="button">Reiniciar</button>
-        <button id="btn-menu" type="button">Menu principal</button>
-    </div>
-    </div>
-</div>
-
-<script src="js/numeroMagico.js"></script>
-
+    <script src="js/numeroMagico.js"></script>
 </body>
 </html>

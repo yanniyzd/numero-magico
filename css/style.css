@@ -8,10 +8,10 @@ body {
     font-family: "Miracode", monospace;
     text-align: center;
     display: flex;
-    flex-direction: column; /* apila pantalla y panel */
+    flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    min-height: 100vh; /* ocupa toda la ventana */
+    min-height: 100vh;
     margin: 0;
     padding: 0 0 20px;
     background-color: rgb(0, 0, 0);
@@ -23,27 +23,25 @@ body {
     font-size: 24px;
 }
 
-/* IMAGEN RELATIVA */
-
+/* Contenedor principal de la pantalla (área de juego) */
 #pantalla {
     flex: 0 0 auto;
-    /* Para mantener 4:3 exacto usando el ancho como referencia */
-    width: 60vh; 
-    aspect-ratio: 4 / 3; /* Esto fuerza la proporción 4:3 */
-    
-    background-color: rgb(0, 0, 0); /* El fondo negro que pediste */
+    width: min(95vw, 70vh); /* Se adapta al ancho pero no supera 70vh */
+    aspect-ratio: 4 / 3;
+    background-color: rgb(0, 0, 0);
     position: relative;
-    margin: clamp(44px, 8vh, 84px) auto 0; /* Baja mas la pantalla */
-    overflow: visible; /* Permite que el marco del televisor sobresalga */
+    margin: clamp(20px, 5vh, 60px) auto 0; /* Margen superior variable */
+    overflow: visible;
     z-index: 1;
 }
 
+/* Marco del panel inferior */
 #panel-marco {
     position: relative;
-    width: min(70vh, 530px);
-    max-width: 95vw;
+    width: min(95vw, 70vh);
+    max-width: 530px; /* Límite para pantallas grandes */
     aspect-ratio: 4 / 3;
-    margin: clamp(28px, 4.5vh, 56px) auto 20px;
+    margin: clamp(10px, 3vh, 40px) auto 20px;
     z-index: 100;
     transition: opacity 140ms linear;
 }
@@ -86,31 +84,28 @@ body {
 }
 
 .input-juego {
-    width: 200px;         /* Ajusta este valor según cuánto texto quieras que se vea */
-    padding: 10px;        /* Espacio interno para que no se vea apretado */
-    font-size: 16px;      /* Tamaño de letra cómodo */
+    width: 200px;
+    padding: 10px;
+    font-size: 16px;
     border-radius: 1px;
     border: 1px solid #9a9a9a;
     background: rgba(0, 0, 0, 0.45);
     color: #f2f2f2;
-    box-sizing: border-box; /* Crucial: para que el padding no estire el ancho total */
+    box-sizing: border-box;
     text-align: center;
     font-family: "Miracode", monospace;
 }
 
+/* Imágenes relativas al contenedor #pantalla */
 .img-relativa {
-    /* Hacemos que la imagen ocupe el 100% de su contenedor (#pantalla) */
     width: 100%;
     height: 100%;
-    
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    
-    /* Mantenemos tus ajustes visuales */
     image-rendering: pixelated;
-    object-fit: contain; /* O 'cover' si quieres que no queden bordes negros */
+    object-fit: contain;
 }
 
 .img-panel-relativa {
@@ -124,6 +119,7 @@ body {
     object-fit: contain;
 }
 
+/* Imagen del televisor, más grande que el área de juego */
 .img-televisor {
     position: absolute;
     width: 125%;
@@ -149,52 +145,19 @@ body {
     display: none !important;
 }
 
+/* Capas de imágenes para el lanzamiento y espacio */
+[id^="banda-izq-"] { z-index: 1; }
+#satelite-img { z-index: 2; }
+[id^="banda-der-"] { z-index: 3; }
+#base-banda-img { z-index: 4; }
+#espacio-img { z-index: 1; }
+#tierra-img { z-index: 2; }
+#zoom-satelite-img { z-index: 3; }
+#fondo-panel-img { z-index: 6; }
+#pantalla-img { z-index: 7; }
+#transicion-img { z-index: 25; }
 
-/* Capa más baja: banda izquierda */
-[id^="banda-izq-"] {
-    z-index: 1;
-}
-
-/* Capa intermedia: satélite */
-#satelite-img {
-    z-index: 2;
-}
-
-/* Capa superior intermedia: banda derecha */
-#banda-der-img,
-[id^="banda-der-"] {
-    z-index: 3;
-}
-
-/* Capa más alta: base del tirachinas */
-#base-banda-img {
-    z-index: 4;
-}
-
-#espacio-img {
-    z-index: 1;
-}
-
-#tierra-img {
-    z-index: 2;
-}
-
-#zoom-satelite-img {
-    z-index: 3;
-}
-
-#fondo-panel-img {
-    z-index: 6;
-}
-
-#pantalla-img {
-    z-index: 7;
-}
-
-#transicion-img {
-    z-index: 25;
-}
-
+/* Historial de intentos */
 #historial {
     text-align: left;
     max-height: 200px;
@@ -206,11 +169,13 @@ body {
     border-radius: 1px;
     color: #f2f2f2;
 }
+
 #historial ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
 }
+
 #historial li {
     display: inline-block;
     margin: 2px 5px;
@@ -221,34 +186,7 @@ body {
     font-family: "Miracode", monospace;
 }
 
-.debug-fisica-lateral {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    width: min(34vw, 420px);
-    max-height: calc(100vh - 32px);
-    margin: 0;
-    padding: 10px 12px;
-    border: 1px solid #8a8a8a;
-    border-radius: 2px;
-    background: rgba(0, 0, 0, 0.78);
-    color: #f6f6f6;
-    text-align: left;
-    font-size: 12px;
-    line-height: 1.25;
-    white-space: pre-wrap;
-    overflow: auto;
-    box-sizing: border-box;
-    z-index: 999;
-    pointer-events: none;
-}
-
-@media (max-width: 1100px) {
-    .debug-fisica-lateral {
-        width: min(44vw, 380px);
-    }
-}
-
+/* Botones y acciones */
 #acciones-menu,
 #acciones-final {
     margin-top: 15px;
@@ -298,9 +236,12 @@ body {
 #btn-menu:hover {
     background: #4b4b4b;
 }
+
+/* Selector de dificultad */
 #dificultad {
     margin-bottom: 15px;
 }
+
 #dificultad select {
     padding: 5px;
     border-radius: 1px;
@@ -318,4 +259,27 @@ button {
 #panel p,
 #panel h3 {
     color: #f2f2f2;
+}
+
+/* Ajustes para móviles muy pequeños */
+@media (max-width: 480px) {
+    #pantalla {
+        width: 98vw; /* Ocupa casi todo el ancho */
+        margin-top: 10px;
+    }
+    #panel-marco {
+        width: 98vw;
+        margin-top: 10px;
+    }
+    .input-juego {
+        width: 160px; /* Input más pequeño */
+        font-size: 14px;
+    }
+    #btn-jugar, #btn-reiniciar, #btn-menu {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+    #titulo-menu h2 {
+        font-size: 20px;
+    }
 }
