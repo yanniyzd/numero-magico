@@ -2,6 +2,7 @@
 const CONFIG = {
     TOTAL_FRAMES: 4,
     VELOCIDAD_ANIMACION_MS: 41,
+    VELOCIDAD_ESPACIO_MS: 120,
     TIEMPO_ANTES_TRANSICION_MS: 280,
     MAX_INTENTOS: 10,
     FISICA: {
@@ -99,6 +100,8 @@ let juegoEnAnimacion = false;
 let recursosPrecargados = false;
 let intervaloTierra = null;
 let frameTierraActual = 1;
+let intervaloEspacio = null;
+let frameEspacioActual = 1;
 let simulacionEspacio = null;
 let rafEspacio = null;
 
@@ -111,6 +114,7 @@ function ocultarGrupo(ids) { ids.forEach(ocultarElemento); }
 
 function ocultarEscenasVisuales(preservarTransicion = false) {
     detenerAnimacionTierra();
+    detenerAnimacionFondoEspacio();
     detenerSimulacionEspacio();
     ocultarGrupo(ELEMENTOS_LANZAMIENTO);
     ocultarGrupo(ELEMENTOS_ESPACIO);
@@ -204,6 +208,23 @@ function detenerAnimacionTierra() {
     if (intervaloTierra) {
         clearInterval(intervaloTierra);
         intervaloTierra = null;
+    }
+}
+
+function iniciarAnimacionFondoEspacio() {
+    detenerAnimacionFondoEspacio();
+    frameEspacioActual = 1;
+    asignarFrame(CONFIG.IDs.ESPACIO, CONFIG.RUTA_ESPACIO + "espacio-", frameEspacioActual);
+    intervaloEspacio = setInterval(() => {
+        frameEspacioActual = (frameEspacioActual % CONFIG.TOTAL_FRAMES) + 1;
+        asignarFrame(CONFIG.IDs.ESPACIO, CONFIG.RUTA_ESPACIO + "espacio-", frameEspacioActual);
+    }, CONFIG.VELOCIDAD_ESPACIO_MS);
+}
+
+function detenerAnimacionFondoEspacio() {
+    if (intervaloEspacio) {
+        clearInterval(intervaloEspacio);
+        intervaloEspacio = null;
     }
 }
 
@@ -486,7 +507,7 @@ function mostrarEscenaLanzamiento(preservarTransicion = false) {
 function mostrarEscenaEspacio(fuerzaUsuario, resultadoEsperado, onResultadoEspacio, preservarTransicion = false) {
     faseJuego = "espacio";
     ocultarEscenasVisuales(preservarTransicion);
-    asignarFrame(CONFIG.IDs.ESPACIO, CONFIG.RUTA_ESPACIO + "espacio-", 1);
+    iniciarAnimacionFondoEspacio();
     iniciarAnimacionTierra();
     mostrarElemento(CONFIG.IDs.ZOOM_SATELITE);
     iniciarSimulacionEspacio(fuerzaUsuario, resultadoEsperado, onResultadoEspacio);
