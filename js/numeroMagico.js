@@ -5,8 +5,25 @@ const CONFIG = {
     TOTAL_FRAMES: 4,
     VELOCIDAD_ANIMACION_MS: 41,
     TIEMPO_ANTES_TRANSICION_MS: 280,
-    TIEMPO_ESPACIO_MS: 250,
     MAX_INTENTOS: 10,
+    FISICA: {
+        ALTURA_CHOQUE_PX: 90,
+        ALTURA_ORBITA_PX: 140,
+        ALTURA_PERDIDA_PX: 220,
+        ANGULO_INICIAL_RAD: Math.PI / 4,
+        SENTIDO_HORARIO: true,
+        PERIODO_ORBITA_MS: 2000,
+        RENDER_ESPACIO_MS: 1000 / 24,
+        MIN_RESULTADO_MS: 500,
+        DURACION_MIN_RESULTADO_MS: 1000,
+        DURACION_MAX_RESULTADO_MS: 5000,
+        DURACION_ORBITA_ACIERTO_MS: 5000,
+        TIEMPO_FALLBACK_MS: 5000,
+        REFRESCO_DEBUG_MS: 80
+    },
+    DEBUG: {
+        MOSTRAR_FISICA: true
+    },
     RUTA_LANZAMIENTO: "img/lanzamiento/",
     RUTA_TRANSICION: "img/transicion/",
     RUTA_ESPACIO: "img/espacio/",
@@ -21,6 +38,7 @@ const CONFIG = {
         RANGO_MAXIMO: "rango-maximo",
         FORM_INGRESO: "form-ingreso",
         ZONA_MENSAJES: "zona-mensajes",
+        DEBUG_FISICA: "debug-fisica",
         TITULO_MENU: "titulo-menu",
         DESCRIPCION: "descripcion-juego",
         DIFICULTAD: "dificultad",
@@ -101,6 +119,8 @@ let juegoEnAnimacion = false;
 let recursosPrecargados = false;
 let intervaloTierra = null;
 let frameTierraActual = 1;
+let simulacionEspacio = null;
+let rafEspacio = null;
 
 /* =================================================
    UTILIDADES UI
@@ -127,12 +147,15 @@ function ocultarGrupo(ids) {
     ids.forEach(ocultarElemento);
 }
 
-function ocultarEscenasVisuales() {
+function ocultarEscenasVisuales(preservarTransicion = false) {
     detenerAnimacionTierra();
+    detenerSimulacionEspacio();
     ocultarGrupo(ELEMENTOS_LANZAMIENTO);
     ocultarGrupo(ELEMENTOS_ESPACIO);
     ocultarGrupo(ELEMENTOS_PANTALLA);
-    ocultarElemento(CONFIG.IDs.TRANSICION);
+    if (!preservarTransicion) {
+        ocultarElemento(CONFIG.IDs.TRANSICION);
+    }
 }
 
 function asignarFrame(id, rutaBase, frame) {
@@ -185,6 +208,112 @@ function limpiarMensajes() {
     const historialEl = el(CONFIG.IDs.HISTORIAL);
     if (mensajeEl) mensajeEl.textContent = "";
     if (historialEl) historialEl.innerHTML = "";
+    ocultarDebugFisica();
+}
+
+function obtenerDebugFisicaElemento() {
+    if (!CONFIG.DEBUG.MOSTRAR_FISICA) return null;
+
+    let debugEl = el(CONFIG.IDs.DEBUG_FISICA);
+    if (debugEl) return debugEl;
+
+    debugEl = document.createElement("pre");
+    debugEl.id = CONFIG.IDs.DEBUG_FISICA;
+    debugEl.className = "debug-fisica-lateral oculto";
+    document.body.appendChild(debugEl);
+    return debugEl;
+}
+
+function mostrarDebugFisica(texto) {
+    if (!CONFIG.DEBUG.MOSTRAR_FISICA) {
+        ocultarDebugFisica();
+        return;
+    }
+    const debugEl = obtenerDebugFisicaElemento();
+    if (!debugEl) return;
+    debugEl.textContent = texto;
+    debugEl.classList.remove("oculto");
+}
+
+function ocultarDebugFisica() {
+    const debugEl = el(CONFIG.IDs.DEBUG_FISICA);
+    if (!debugEl) return;
+    debugEl.textContent = "";
+    debugEl.classList.add("oculto");
+}
+
+function fmtNumero(valor, decimales = 2) {
+    if (!Number.isFinite(valor)) return "-";
+    return valor.toFixed(decimales);
+}
+
+function fmtPx(valor, decimales = 1) {
+    if (!Number.isFinite(valor)) return "-";
+    return `${valor.toFixed(decimales)} px`;
+}
+
+function obtenerRadioOrbita() {
+    return CONFIG.FISICA.ALTURA_ORBITA_PX;
+}
+
+function obtenerRadioChoque() {
+    return CONFIG.FISICA.ALTURA_CHOQUE_PX;
+}
+
+function obtenerRadioPerdida() {
+    return CONFIG.FISICA.ALTURA_PERDIDA_PX;
+}
+
+function obtenerSignoSentidoOrbital() {
+    return CONFIG.FISICA.SENTIDO_HORARIO ? -1 : 1;
+}
+
+function clamp(valor, minimo, maximo) {
+    return Math.min(maximo, Math.max(minimo, valor));
+}
+
+function lerp(a, b, t) {
+    return a + ((b - a) * t);
+}
+
+function calcularDuracionResultadoMs(fuerzaUsuario) {
+    const diferencia = Math.abs(fuerzaUsuario - numeroSecreto);
+    const rangoGlobal = Math.max(1, maximoActual - 1);
+    const progreso = clamp(diferencia / rangoGlobal, 0, 1);
+    return CONFIG.FISICA.DURACION_MAX_RESULTADO_MS -
+        ((CONFIG.FISICA.DURACION_MAX_RESULTADO_MS - CONFIG.FISICA.DURACION_MIN_RESULTADO_MS) * progreso);
+}
+
+function construirTextoDebugFisica(sim, tiempoVisibleMs) {
+    if (!sim) return "";
+    const radioChoque = obtenerRadioChoque();
+    const radioPerdida = obtenerRadioPerdida();
+    const altitudSobreChoque = sim.radioActual - radioChoque;
+
+    return [
+        `Debug espacio (simple)`,
+        `Resultado por numero: ${sim.resultadoEsperado}`,
+        `Entrada: ${sim.fuerzaUsuario} | Secreto: ${sim.numeroSecreto} | Max: ${sim.maximoActual}`,
+        `Diferencia relativa: ${fmtNumero(sim.progresoError * 100, 2)} %`,
+        `Duracion objetivo: ${fmtNumero(sim.duracionObjetivoMs, 0)} ms`,
+        `Spawn (orbita): ${fmtPx(CONFIG.FISICA.ALTURA_ORBITA_PX)}`,
+        `Periodo orbita: ${fmtNumero(CONFIG.FISICA.PERIODO_ORBITA_MS / 1000, 2)} s/vuelta`,
+        `Sentido: ${CONFIG.FISICA.SENTIDO_HORARIO ? "horario" : "antihorario"}`,
+        `Render satelite: ${fmtNumero(1000 / sim.frameRenderMs, 0)} FPS`,
+        `Fallback transicion: ${fmtNumero(CONFIG.FISICA.TIEMPO_FALLBACK_MS / 1000, 1)} s`,
+        `Tiempo visible: ${fmtNumero(tiempoVisibleMs, 0)} ms`,
+        `Modo trayectoria: ${sim.modoTrayectoria}`,
+        `Radio actual: ${fmtPx(sim.radioActual)}`,
+        `Altitud sobre choque: ${fmtPx(altitudSobreChoque)}`,
+        `Radio minimo: ${fmtPx(sim.radioMinimo)}`,
+        `Radio maximo: ${fmtPx(sim.radioMaximo)}`,
+        `Vueltas: ${fmtNumero(sim.vueltas, 3)}`,
+        `Altura choque: ${fmtPx(radioChoque)}`,
+        `Altura orbita: ${fmtPx(CONFIG.FISICA.ALTURA_ORBITA_PX)}`,
+        `Altura perdida: ${fmtPx(radioPerdida)}`,
+        `Regla: BAJO/ALTO/ACIERTO se decide por comparacion del numero`,
+        `Motivo final: ${sim.motivoFinal || "-"}`
+    ].join("\n");
 }
 
 function actualizarHistorial() {
@@ -229,6 +358,209 @@ function detenerAnimacionTierra() {
     if (!intervaloTierra) return;
     clearInterval(intervaloTierra);
     intervaloTierra = null;
+}
+
+function actualizarPosicionSateliteEspacio(angulo, radioPx) {
+    const satelite = el(CONFIG.IDs.ZOOM_SATELITE);
+    const pantalla = el("pantalla");
+    if (!satelite || !pantalla) return;
+
+    const rect = pantalla.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const cx = rect.width * 0.5;
+    const cy = rect.height * 0.5;
+    const px = cx + (radioPx * Math.cos(angulo));
+    const py = cy - (radioPx * Math.sin(angulo));
+
+    satelite.style.left = `${(px / rect.width) * 100}%`;
+    satelite.style.top = `${(py / rect.height) * 100}%`;
+}
+
+function detenerSimulacionEspacio() {
+    if (rafEspacio) {
+        cancelAnimationFrame(rafEspacio);
+        rafEspacio = null;
+    }
+    simulacionEspacio = null;
+}
+
+function construirCondicionesInicialesEspacio(fuerzaUsuario) {
+    const fuerza = Math.max(1, Math.min(maximoActual, fuerzaUsuario));
+    const r0 = obtenerRadioOrbita();
+    const progresoError = clamp(Math.abs(fuerza - numeroSecreto) / Math.max(1, maximoActual - 1), 0, 1);
+
+    return {
+        r0,
+        anguloInicial: CONFIG.FISICA.ANGULO_INICIAL_RAD,
+        fuerza,
+        numeroSecreto,
+        maximoActual,
+        progresoError
+    };
+}
+
+function finalizarResultadoEspacio(tipoResultado, motivoFinal) {
+    if (!simulacionEspacio) return;
+    simulacionEspacio.motivoFinal = motivoFinal || simulacionEspacio.motivoFinal || "sin_motivo";
+    mostrarDebugFisica(construirTextoDebugFisica(simulacionEspacio, performance.now() - simulacionEspacio.tInicioReal));
+    const callbackResultado = simulacionEspacio.onResultado;
+    detenerSimulacionEspacio();
+    if (typeof callbackResultado === "function") {
+        callbackResultado(tipoResultado, motivoFinal);
+    }
+}
+
+function iniciarSimulacionEspacio(fuerzaUsuario, resultadoEsperado, onResultado) {
+    detenerSimulacionEspacio();
+
+    const inicial = construirCondicionesInicialesEspacio(Math.max(1, fuerzaUsuario));
+    const radioChoque = obtenerRadioChoque();
+    const radioPerdida = obtenerRadioPerdida();
+    const signoSentido = obtenerSignoSentidoOrbital();
+    const omegaAngular = signoSentido * ((2 * Math.PI) / Math.max(CONFIG.FISICA.PERIODO_ORBITA_MS / 1000, 0.001));
+    const duracionObjetivoMs = resultadoEsperado === "ACIERTO"
+        ? CONFIG.FISICA.DURACION_ORBITA_ACIERTO_MS
+        : calcularDuracionResultadoMs(inicial.fuerza);
+
+    let radioObjetivo = inicial.r0;
+    let modoTrayectoria = "ORBITA";
+    if (resultadoEsperado === "BAJO") {
+        radioObjetivo = radioChoque;
+        modoTrayectoria = "CAIDA";
+    } else if (resultadoEsperado === "ALTO") {
+        radioObjetivo = radioPerdida;
+        modoTrayectoria = "ASCENSO";
+    }
+
+    simulacionEspacio = {
+        estado: "TRAYECTORIA",
+        tAnterior: null,
+        tiempoS: 0,
+        tiempoTrayectoriaMs: 0,
+        vueltas: 0,
+        anguloInicial: inicial.anguloInicial,
+        anguloActual: inicial.anguloInicial,
+        anguloAnterior: inicial.anguloInicial,
+        anguloAcumulado: 0,
+        omegaAngular,
+        resultadoEsperado,
+        resultadoPendiente: null,
+        motivoPendiente: null,
+        radioInicio: inicial.r0,
+        radioObjetivo,
+        radioActual: inicial.r0,
+        modoTrayectoria,
+        duracionObjetivoMs,
+        progresoError: inicial.progresoError,
+        radioMaximo: inicial.r0,
+        radioMinimo: inicial.r0,
+        tInicioReal: performance.now(),
+        ultimoDebugMs: -Infinity,
+        acumuladoRenderMs: 0,
+        frameRenderMs: CONFIG.FISICA.RENDER_ESPACIO_MS,
+        onResultado,
+        fuerzaUsuario: inicial.fuerza,
+        numeroSecreto: inicial.numeroSecreto,
+        maximoActual: inicial.maximoActual
+    };
+
+    actualizarPosicionSateliteEspacio(simulacionEspacio.anguloActual, simulacionEspacio.radioActual);
+    mostrarDebugFisica(construirTextoDebugFisica(simulacionEspacio, 0));
+
+    const loop = (timestamp) => {
+        if (!simulacionEspacio) return;
+
+        if (simulacionEspacio.tAnterior === null) {
+            simulacionEspacio.tAnterior = timestamp;
+            rafEspacio = requestAnimationFrame(loop);
+            return;
+        }
+
+        const tiempoVisibleMs = timestamp - simulacionEspacio.tInicioReal;
+        const puedeConcluir = tiempoVisibleMs >= CONFIG.FISICA.MIN_RESULTADO_MS;
+
+        if (simulacionEspacio.resultadoPendiente && puedeConcluir) {
+            finalizarResultadoEspacio(
+                simulacionEspacio.resultadoPendiente,
+                simulacionEspacio.motivoPendiente || "pendiente_minimo_visual"
+            );
+            return;
+        }
+
+        const dtMs = Math.max(0, timestamp - simulacionEspacio.tAnterior);
+        simulacionEspacio.tAnterior = timestamp;
+        simulacionEspacio.tiempoTrayectoriaMs += dtMs;
+        simulacionEspacio.tiempoS = simulacionEspacio.tiempoTrayectoriaMs / 1000;
+        simulacionEspacio.acumuladoRenderMs += dtMs;
+        const progreso = simulacionEspacio.duracionObjetivoMs > 0
+            ? clamp(simulacionEspacio.tiempoTrayectoriaMs / simulacionEspacio.duracionObjetivoMs, 0, 1)
+            : 1;
+        const dthetaDt = simulacionEspacio.omegaAngular;
+        const anguloActual = simulacionEspacio.anguloInicial + (dthetaDt * simulacionEspacio.tiempoS);
+        simulacionEspacio.anguloActual = anguloActual;
+
+        const radioActual = simulacionEspacio.modoTrayectoria === "ORBITA"
+            ? simulacionEspacio.radioInicio
+            : lerp(simulacionEspacio.radioInicio, simulacionEspacio.radioObjetivo, progreso);
+        simulacionEspacio.radioActual = radioActual;
+
+        simulacionEspacio.radioMaximo = Math.max(simulacionEspacio.radioMaximo, radioActual);
+        simulacionEspacio.radioMinimo = Math.min(simulacionEspacio.radioMinimo, radioActual);
+
+        let deltaAngulo = anguloActual - simulacionEspacio.anguloAnterior;
+        if (deltaAngulo > Math.PI) deltaAngulo -= 2 * Math.PI;
+        if (deltaAngulo < -Math.PI) deltaAngulo += 2 * Math.PI;
+        simulacionEspacio.anguloAcumulado += Math.abs(deltaAngulo);
+        simulacionEspacio.anguloAnterior = anguloActual;
+        simulacionEspacio.vueltas = simulacionEspacio.anguloAcumulado / (2 * Math.PI);
+
+        if (progreso >= 1 && !simulacionEspacio.resultadoPendiente) {
+            simulacionEspacio.resultadoPendiente = simulacionEspacio.resultadoEsperado;
+            if (simulacionEspacio.resultadoEsperado === "ACIERTO") {
+                simulacionEspacio.estado = "ORBITA";
+                simulacionEspacio.motivoPendiente = "orbita_5s";
+            } else if (simulacionEspacio.resultadoEsperado === "BAJO") {
+                simulacionEspacio.estado = "IMPACTO";
+                simulacionEspacio.motivoPendiente = "caida_lineal";
+            } else {
+                simulacionEspacio.estado = "ESCAPE";
+                simulacionEspacio.motivoPendiente = "ascenso_lineal";
+            }
+            if (puedeConcluir) {
+                finalizarResultadoEspacio(simulacionEspacio.resultadoPendiente, simulacionEspacio.motivoPendiente);
+                return;
+            }
+        }
+
+        if (
+            simulacionEspacio.acumuladoRenderMs >= simulacionEspacio.frameRenderMs ||
+            simulacionEspacio.resultadoPendiente
+        ) {
+            actualizarPosicionSateliteEspacio(simulacionEspacio.anguloActual, simulacionEspacio.radioActual);
+            if (simulacionEspacio.acumuladoRenderMs >= simulacionEspacio.frameRenderMs) {
+                simulacionEspacio.acumuladoRenderMs %= simulacionEspacio.frameRenderMs;
+            }
+        }
+
+        const tiempoVisibleMsActual = timestamp - simulacionEspacio.tInicioReal;
+        if (timestamp - simulacionEspacio.ultimoDebugMs >= CONFIG.FISICA.REFRESCO_DEBUG_MS) {
+            mostrarDebugFisica(construirTextoDebugFisica(simulacionEspacio, tiempoVisibleMsActual));
+            simulacionEspacio.ultimoDebugMs = timestamp;
+        }
+
+        if (
+            !simulacionEspacio.resultadoPendiente &&
+            tiempoVisibleMsActual >= CONFIG.FISICA.TIEMPO_FALLBACK_MS
+        ) {
+            finalizarResultadoEspacio(simulacionEspacio.resultadoEsperado, "fallback_5s_sin_evento");
+            return;
+        }
+
+        rafEspacio = requestAnimationFrame(loop);
+    };
+
+    rafEspacio = requestAnimationFrame(loop);
 }
 
 function obtenerRutasRecursos() {
@@ -307,6 +639,7 @@ function mostrarPanelMenu() {
 
     const mensajeEl = el(CONFIG.IDs.MENSAJE);
     if (mensajeEl) mensajeEl.textContent = "";
+    ocultarDebugFisica();
 }
 
 function mostrarPanelJuego() {
@@ -338,15 +671,15 @@ function mostrarPanelFinPorIntentos(numero) {
 /* =================================================
    ESCENAS VISUALES
    ================================================= */
-function mostrarEscenaMenu() {
+function mostrarEscenaMenu(preservarTransicion = false) {
     faseJuego = "menu";
-    ocultarEscenasVisuales();
+    ocultarEscenasVisuales(preservarTransicion);
     asignarImagenPantalla("main-menu.png");
 }
 
-function mostrarEscenaLanzamiento() {
+function mostrarEscenaLanzamiento(preservarTransicion = false) {
     faseJuego = "juego";
-    ocultarEscenasVisuales();
+    ocultarEscenasVisuales(preservarTransicion);
     mostrarGrupo([
         CONFIG.IDs.FONDO,
         CONFIG.IDs.TIRACHINAS,
@@ -356,19 +689,21 @@ function mostrarEscenaLanzamiento() {
     ]);
     actualizarBandas(CONFIG.PREFIJOS.BANDA_IZQ, CONFIG.TOTAL_FRAMES);
     actualizarBandas(CONFIG.PREFIJOS.BANDA_DER, CONFIG.TOTAL_FRAMES);
+    establecerFrameLanzamiento(CONFIG.TOTAL_FRAMES);
 }
 
-function mostrarEscenaEspacio() {
+function mostrarEscenaEspacio(fuerzaUsuario, resultadoEsperado, onResultadoEspacio, preservarTransicion = false) {
     faseJuego = "espacio";
-    ocultarEscenasVisuales();
+    ocultarEscenasVisuales(preservarTransicion);
     asignarFrame(CONFIG.IDs.ESPACIO, CONFIG.RUTA_ESPACIO + "espacio-", 1);
     iniciarAnimacionTierra();
     mostrarElemento(CONFIG.IDs.ZOOM_SATELITE);
+    iniciarSimulacionEspacio(fuerzaUsuario, resultadoEsperado, onResultadoEspacio);
 }
 
-function mostrarEscenaFinal(tipoResultado) {
+function mostrarEscenaFinal(tipoResultado, preservarTransicion = false) {
     faseJuego = "final";
-    ocultarEscenasVisuales();
+    ocultarEscenasVisuales(preservarTransicion);
 
     const resultado = CONFIG.RESULTADOS[tipoResultado];
     if (!resultado) return;
@@ -408,7 +743,7 @@ function animarTransicion(onCubierto, onFinish) {
     }, CONFIG.VELOCIDAD_ANIMACION_MS);
 }
 
-function lanzarSecuenciaCompleta(tipoResultado, onFinish) {
+function lanzarSecuenciaCompleta(fuerzaUsuario, resultadoEsperado, onFinish) {
     if (juegoEnAnimacion) return;
     juegoEnAnimacion = true;
     marcarPanelInactivo(true);
@@ -421,23 +756,21 @@ function lanzarSecuenciaCompleta(tipoResultado, onFinish) {
         animarTransicion(
             () => {
                 ocultarGrupo(ELEMENTOS_LANZAMIENTO);
-                mostrarEscenaEspacio();
-            },
-            () => {
-                setTimeout(() => {
+                mostrarEscenaEspacio(fuerzaUsuario, resultadoEsperado, (resultadoEspacio) => {
                     animarTransicion(
                         () => {
                             ocultarGrupo(ELEMENTOS_ESPACIO);
-                            mostrarEscenaFinal(tipoResultado);
+                            mostrarEscenaFinal(resultadoEspacio, true);
                         },
                         () => {
                             juegoEnAnimacion = false;
                             marcarPanelInactivo(false);
-                            if (onFinish) onFinish();
+                            if (onFinish) onFinish(resultadoEspacio);
                         }
                     );
-                }, CONFIG.TIEMPO_ESPACIO_MS);
-            }
+                }, true);
+            },
+            () => {}
         );
     }, CONFIG.TIEMPO_ANTES_TRANSICION_MS);
 }
@@ -514,8 +847,9 @@ function irMenuPrincipal() {
 
 function iniciarJuego() {
     if (!recursosPrecargados) return;
-    faseJuego = "juego";
     prepararNuevaPartida();
+    marcarPanelInactivo(false);
+    ocultarElemento(CONFIG.IDs.TRANSICION);
     mostrarEscenaLanzamiento();
     mostrarPanelJuego();
     bloquearEntrada(false);
@@ -542,14 +876,14 @@ function validarNumero() {
     intentos++;
     historial.push(numeroUsuario);
     actualizarHistorial();
+    ocultarDebugFisica();
     bloquearEntrada(true);
+    const resultadoEsperado = resolverResultado(numeroUsuario);
 
-    const resultado = resolverResultado(numeroUsuario);
-    const acerto = resultado === "ACIERTO";
-    const perdioPorIntentos = !acerto && intentos >= CONFIG.MAX_INTENTOS;
-
-    lanzarSecuenciaCompleta(resultado, () => {
+    lanzarSecuenciaCompleta(numeroUsuario, resultadoEsperado, (resultadoEspacio) => {
         const mensajeEl = el(CONFIG.IDs.MENSAJE);
+        const acerto = resultadoEspacio === "ACIERTO";
+        const perdioPorIntentos = !acerto && intentos >= CONFIG.MAX_INTENTOS;
 
         if (perdioPorIntentos) {
             mostrarPanelFinPorIntentos(numeroSecreto);
@@ -570,7 +904,7 @@ function validarNumero() {
         }
 
         mostrarPanelJuego();
-        if (mensajeEl) mensajeEl.textContent = CONFIG.RESULTADOS[resultado].mensaje;
+        if (mensajeEl) mensajeEl.textContent = CONFIG.RESULTADOS[resultadoEspacio].mensaje;
         bloquearEntrada(false);
         if (input) input.value = "";
     });

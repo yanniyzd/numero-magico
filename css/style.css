@@ -31,7 +31,7 @@ body {
     width: 60vh; 
     aspect-ratio: 4 / 3; /* Esto fuerza la proporción 4:3 */
     
-    background-color: rgb(255, 0, 221); /* El fondo negro que pediste */
+    background-color: rgb(0, 0, 0); /* El fondo negro que pediste */
     position: relative;
     margin: clamp(44px, 8vh, 84px) auto 0; /* Baja mas la pantalla */
     overflow: visible; /* Permite que el marco del televisor sobresalga */
@@ -138,9 +138,10 @@ body {
 
 .img-posicion-satelite {
     position: absolute;
-    width: 24%;
-    left: 39%;
-    top: 28%;
+    width: 28%;
+    left: 50%;
+    top: 20%;
+    transform: translate(-50%, -50%);
     image-rendering: pixelated;
 }
 
@@ -219,6 +220,35 @@ body {
     border-radius: 1px;
     font-family: "Miracode", monospace;
 }
+
+.debug-fisica-lateral {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: min(34vw, 420px);
+    max-height: calc(100vh - 32px);
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid #8a8a8a;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.78);
+    color: #f6f6f6;
+    text-align: left;
+    font-size: 12px;
+    line-height: 1.25;
+    white-space: pre-wrap;
+    overflow: auto;
+    box-sizing: border-box;
+    z-index: 999;
+    pointer-events: none;
+}
+
+@media (max-width: 1100px) {
+    .debug-fisica-lateral {
+        width: min(44vw, 380px);
+    }
+}
+
 #acciones-menu,
 #acciones-final {
     margin-top: 15px;
