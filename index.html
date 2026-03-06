@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Numero Magico</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<h1>¡Lanza el satelite!</h1>
+
+<div id="pantalla">
+    <img class="img-relativa oculto" id="fondo-img" src="img/lanzamiento/fondo.png">
+    <img class="img-relativa oculto" id="tirachinas-img" src="img/lanzamiento/tirachinas.png">
+    <img class="img-relativa oculto" id="base-banda-tirachinas-img" src="img/lanzamiento/base-banda-tirachinas.png">
+    
+    <img class="img-relativa banda oculto" id="banda-izq-1" src="img/lanzamiento/banda-izq-1.png">
+    <img class="img-relativa banda oculto" id="banda-izq-2" src="img/lanzamiento/banda-izq-2.png">
+    <img class="img-relativa banda oculto" id="banda-izq-3" src="img/lanzamiento/banda-izq-3.png">
+    <img class="img-relativa banda oculto" id="banda-izq-4" src="img/lanzamiento/banda-izq-4.png">
+
+    <img class="img-relativa banda oculto" id="banda-der-1" src="img/lanzamiento/banda-der-1.png">
+    <img class="img-relativa banda oculto" id="banda-der-2" src="img/lanzamiento/banda-der-2.png">
+    <img class="img-relativa banda oculto" id="banda-der-3" src="img/lanzamiento/banda-der-3.png">
+    <img class="img-relativa banda oculto" id="banda-der-4" src="img/lanzamiento/banda-der-4.png">
+
+    <img class="img-relativa oculto" id="satelite-img" src="img/lanzamiento/satelite-4.png">
+    <img class="img-relativa oculto" id="base-banda-img" src="img/lanzamiento/base-banda-4.png">
+       
+    <img class="img-relativa oculto" id="transicion-img" src="img/transicion/7.png">
+   
+</div>
+
+
+
+<div class="panel" id="panel">
+    <div id="descripcion-juego">
+        <p>Lanza con una fuerza de entre 1 y <span id="maximo-valor">100</span></p>
+    </div>
+
+    <!-- Selector de dificultad -->
+    <div id="dificultad">
+        <label for="select-dificultad">Dificultad:</label>
+        <select id="select-dificultad">
+            <option value="FACIL" selected>Fácil (1-100)</option>
+            <option value="MEDIA">Media (1-333)</option>
+            <option value="DIFICIL">Difícil (1-767)</option>
+        </select>
+    </div>
+
+    <div id="form-ingreso">
+        <form onsubmit="validarNumero(); return false;">
+            <input type="number" id="numUsuario" class="input-juego" placeholder="1-100" min="1" max="100" value="1" required>
+            <button type="submit">¡Lanzar!</button>
+        </form>
+    </div>
+
+    <div id="zona-mensajes">
+        <p id="mensaje"></p>
+    </div>
+
+    <!-- Historial de intentos -->
+    <div id="historial"></div>
+
+    <!-- Botón para reiniciar (oculto inicialmente) -->
+    <button id="btn-reiniciar" class="oculto" onclick="iniciarJuego()">Jugar de nuevo</button>
+</div>
+
+<script src="js/numeroMagico.js"></script>
+
+</body>
+</html>

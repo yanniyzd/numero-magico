@@ -1,0 +1,135 @@
+body {
+    font-family: Arial;
+    text-align: center;
+    display: flex;
+    flex-direction: column; /* apila pantalla y panel */
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh; /* ocupa toda la ventana */
+    margin: 0;
+    background-color: rgb(49, 49, 49);
+}
+
+h1 {
+    color: white;
+}
+
+/* IMAGEN RELATIVA */
+
+#pantalla {
+    flex: 0 0 auto;
+    /* Para mantener 4:3 exacto usando el ancho como referencia */
+    width: 70vh; 
+    aspect-ratio: 4 / 3; /* Esto fuerza la proporción 4:3 */
+    
+    background-color: rgb(255, 0, 200); /* El fondo negro que pediste */
+    position: relative;
+    margin: 0 auto; /* Centra el contenedor en la pantalla */
+    overflow: hidden; /* Opcional: corta lo que sobresalga de las imágenes */
+}
+
+#panel {
+    flex: 0 0 auto;
+    width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #eeeeee;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+}
+
+.input-juego {
+    width: 200px;         /* Ajusta este valor según cuánto texto quieras que se vea */
+    padding: 10px;        /* Espacio interno para que no se vea apretado */
+    font-size: 16px;      /* Tamaño de letra cómodo */
+    border-radius: 5px;   /* Bordes redondeados para que pegue con tu #panel */
+    border: 1px solid #ccc;
+    box-sizing: border-box; /* Crucial: para que el padding no estire el ancho total */
+    text-align: center;
+}
+
+.img-relativa {
+    /* Hacemos que la imagen ocupe el 100% de su contenedor (#pantalla) */
+    width: 100%;
+    height: 100%;
+    
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Mantenemos tus ajustes visuales */
+    image-rendering: pixelated;
+    object-fit: contain; /* O 'cover' si quieres que no queden bordes negros */
+}
+
+.oculto {
+    display: none !important;
+}
+
+
+/* Capa más baja: banda izquierda */
+[id^="banda-izq-"] {
+    z-index: 1;
+}
+
+/* Capa intermedia: satélite */
+#satelite-img {
+    z-index: 2;
+}
+
+/* Capa superior intermedia: banda derecha */
+#banda-der-img,
+[id^="banda-der-"] {
+    z-index: 3;
+}
+
+/* Capa más alta: base del tirachinas */
+#base-banda-img {
+    z-index: 4;
+}
+
+#historial {
+    text-align: left;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+    background: white;
+    border-radius: 5px;
+}
+#historial ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+#historial li {
+    display: inline-block;
+    margin: 2px 5px;
+    padding: 5px 10px;
+    background: #ddd;
+    border-radius: 3px;
+    font-family: monospace;
+}
+#btn-reiniciar {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+#btn-reiniciar:hover {
+    background: #45a049;
+}
+#dificultad {
+    margin-bottom: 15px;
+}
+#dificultad select {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
