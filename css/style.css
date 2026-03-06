@@ -1,5 +1,11 @@
+@font-face {
+    font-family: "Miracode";
+    src: url("../fonts/Miracode.ttf") format("truetype");
+    font-display: swap;
+}
+
 body {
-    font-family: Arial;
+    font-family: "Miracode", monospace;
     text-align: center;
     display: flex;
     flex-direction: column; /* apila pantalla y panel */
@@ -7,11 +13,14 @@ body {
     justify-content: flex-start;
     min-height: 100vh; /* ocupa toda la ventana */
     margin: 0;
-    background-color: rgb(49, 49, 49);
+    padding: 0 0 20px;
+    background-color: rgb(0, 0, 0);
 }
 
-h1 {
+#titulo-menu h2 {
     color: white;
+    margin: 0 0 10px;
+    font-size: 24px;
 }
 
 /* IMAGEN RELATIVA */
@@ -19,33 +28,74 @@ h1 {
 #pantalla {
     flex: 0 0 auto;
     /* Para mantener 4:3 exacto usando el ancho como referencia */
-    width: 70vh; 
+    width: 60vh; 
     aspect-ratio: 4 / 3; /* Esto fuerza la proporción 4:3 */
     
-    background-color: rgb(255, 0, 200); /* El fondo negro que pediste */
+    background-color: rgb(255, 0, 221); /* El fondo negro que pediste */
     position: relative;
-    margin: 0 auto; /* Centra el contenedor en la pantalla */
-    overflow: hidden; /* Opcional: corta lo que sobresalga de las imágenes */
+    margin: clamp(44px, 8vh, 84px) auto 0; /* Baja mas la pantalla */
+    overflow: visible; /* Permite que el marco del televisor sobresalga */
+    z-index: 1;
+}
+
+#panel-marco {
+    position: relative;
+    width: min(70vh, 530px);
+    max-width: 95vw;
+    aspect-ratio: 4 / 3;
+    margin: clamp(28px, 4.5vh, 56px) auto 20px;
+    z-index: 100;
+    transition: opacity 140ms linear;
+}
+
+#panel-marco-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    object-fit: contain;
+    pointer-events: none;
+    z-index: 1;
 }
 
 #panel {
-    flex: 0 0 auto;
-    width: 500px;
-    margin: 20px auto;
-    padding: 20px;
-    background: #eeeeee;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 75%;
+    margin: 0;
+    padding: 18px 20px;
+    background: transparent;
+    color: #f2f2f2;
+    border-radius: 2px;
+    box-shadow: none;
+    box-sizing: border-box;
+    overflow: hidden;
+    z-index: 2;
+}
+
+#panel-marco.panel-inactivo {
+    opacity: 0.5;
+}
+
+#panel-marco.panel-inactivo #panel {
+    pointer-events: none;
 }
 
 .input-juego {
     width: 200px;         /* Ajusta este valor según cuánto texto quieras que se vea */
     padding: 10px;        /* Espacio interno para que no se vea apretado */
     font-size: 16px;      /* Tamaño de letra cómodo */
-    border-radius: 5px;   /* Bordes redondeados para que pegue con tu #panel */
-    border: 1px solid #ccc;
+    border-radius: 1px;
+    border: 1px solid #9a9a9a;
+    background: rgba(0, 0, 0, 0.45);
+    color: #f2f2f2;
     box-sizing: border-box; /* Crucial: para que el padding no estire el ancho total */
     text-align: center;
+    font-family: "Miracode", monospace;
 }
 
 .img-relativa {
@@ -61,6 +111,37 @@ h1 {
     /* Mantenemos tus ajustes visuales */
     image-rendering: pixelated;
     object-fit: contain; /* O 'cover' si quieres que no queden bordes negros */
+}
+
+.img-panel-relativa {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    image-rendering: pixelated;
+    object-fit: contain;
+}
+
+.img-televisor {
+    position: absolute;
+    width: 125%;
+    height: 133.333%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    image-rendering: pixelated;
+    z-index: 30;
+    pointer-events: none;
+}
+
+.img-posicion-satelite {
+    position: absolute;
+    width: 24%;
+    left: 39%;
+    top: 28%;
+    image-rendering: pixelated;
 }
 
 .oculto {
@@ -89,15 +170,40 @@ h1 {
     z-index: 4;
 }
 
+#espacio-img {
+    z-index: 1;
+}
+
+#tierra-img {
+    z-index: 2;
+}
+
+#zoom-satelite-img {
+    z-index: 3;
+}
+
+#fondo-panel-img {
+    z-index: 6;
+}
+
+#pantalla-img {
+    z-index: 7;
+}
+
+#transicion-img {
+    z-index: 25;
+}
+
 #historial {
     text-align: left;
     max-height: 200px;
     overflow-y: auto;
-    border: 1px solid #ccc;
+    border: 1px solid #9a9a9a;
     padding: 10px;
-    margin-top: 10px;
-    background: white;
-    border-radius: 5px;
+    margin: 10px 5% 0;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 1px;
+    color: #f2f2f2;
 }
 #historial ul {
     list-style-type: none;
@@ -108,28 +214,78 @@ h1 {
     display: inline-block;
     margin: 2px 5px;
     padding: 5px 10px;
-    background: #ddd;
-    border-radius: 3px;
-    font-family: monospace;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-radius: 1px;
+    font-family: "Miracode", monospace;
 }
-#btn-reiniciar {
+#acciones-menu,
+#acciones-final {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+#acciones-final {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+#btn-jugar,
+#btn-reiniciar,
+#btn-menu {
     margin-top: 15px;
     padding: 10px 20px;
     background: #4CAF50;
     color: white;
-    border: none;
-    border-radius: 5px;
+    border: 1px solid #2d7a31;
+    border-radius: 1px;
     cursor: pointer;
     font-size: 16px;
+    font-family: "Miracode", monospace;
 }
+
+#acciones-final #btn-reiniciar,
+#acciones-final #btn-menu {
+    width: min(240px, 88%);
+    font-size: 18px;
+    padding: 12px 18px;
+    margin-top: 0;
+}
+
+#btn-menu {
+    background: #3a3a3a;
+    border-color: #787878;
+}
+
+#btn-jugar:hover,
 #btn-reiniciar:hover {
     background: #45a049;
+}
+
+#btn-menu:hover {
+    background: #4b4b4b;
 }
 #dificultad {
     margin-bottom: 15px;
 }
 #dificultad select {
     padding: 5px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    border-radius: 1px;
+    border: 1px solid #9a9a9a;
+    background: rgba(0, 0, 0, 0.45);
+    color: #f2f2f2;
+    font-family: "Miracode", monospace;
+}
+
+button {
+    border-radius: 1px;
+}
+
+#panel label,
+#panel p,
+#panel h3 {
+    color: #f2f2f2;
 }

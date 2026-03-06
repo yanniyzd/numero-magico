@@ -14,9 +14,10 @@
 
 <body>
 
-<h1>¡Lanza el satelite!</h1>
-
 <div id="pantalla">
+    <img class="img-televisor" id="televisor-img" src="img/dispositivos/televisor.png">
+    <img class="img-panel-relativa oculto" id="fondo-panel-img" src="img/dispositivos/panel.png">
+
     <img class="img-relativa oculto" id="fondo-img" src="img/lanzamiento/fondo.png">
     <img class="img-relativa oculto" id="tirachinas-img" src="img/lanzamiento/tirachinas.png">
     <img class="img-relativa oculto" id="base-banda-tirachinas-img" src="img/lanzamiento/base-banda-tirachinas.png">
@@ -36,13 +37,23 @@
        
     <img class="img-relativa oculto" id="transicion-img" src="img/transicion/7.png">
    
+    <img class="img-relativa oculto" id="espacio-img" src="img/espacio/espacio-1.png">
+    <img class="img-relativa oculto" id="tierra-img" src="img/espacio/tierra1.png">
+    <img class="img-posicion-satelite oculto" id="zoom-satelite-img" src="img/espacio/zoom-satelite.png">   
+    
+    <img class="img-relativa oculto" id="pantalla-img" src="img/pantallas/main-menu.png">
+    
 </div>
 
 
-
-<div class="panel" id="panel">
+<div id="panel-marco">
+    <img id="panel-marco-img" src="img/dispositivos/panel.png">
+    <div class="panel" id="panel">
+    <div id="titulo-menu">
+        <h2>¡Lanza el satelite!</h2>
+    </div>
     <div id="descripcion-juego">
-        <p>Lanza con una fuerza de entre 1 y <span id="maximo-valor">100</span></p>
+        <p>Lanza con una fuerza de entre 1 y <span id="rango-maximo">100</span></p>
     </div>
 
     <!-- Selector de dificultad -->
@@ -53,6 +64,10 @@
             <option value="MEDIA">Media (1-333)</option>
             <option value="DIFICIL">Difícil (1-767)</option>
         </select>
+    </div>
+
+    <div id="acciones-menu">
+        <button id="btn-jugar" type="button">Jugar</button>
     </div>
 
     <div id="form-ingreso">
@@ -69,8 +84,11 @@
     <!-- Historial de intentos -->
     <div id="historial"></div>
 
-    <!-- Botón para reiniciar (oculto inicialmente) -->
-    <button id="btn-reiniciar" class="oculto" onclick="iniciarJuego()">Jugar de nuevo</button>
+    <div id="acciones-final" class="oculto">
+        <button id="btn-reiniciar" type="button">Reiniciar</button>
+        <button id="btn-menu" type="button">Menu principal</button>
+    </div>
+    </div>
 </div>
 
 <script src="js/numeroMagico.js"></script>
